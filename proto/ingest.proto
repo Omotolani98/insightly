@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package ingest;
+
+option go_package = "/proto/ingest;ingest";
+
+service LogIngest {
+  rpc StreamLogs(stream LogRecord) returns (IngestAck);
+}
+
+message LogRecord {
+  string stream = 1;        // Which service/app (e.g., \"auth-service\")
+  int64 timestamp = 2;      // UNIX timestamp (UTC seconds)
+  string level = 3;         // \"INFO\", \"WARN\", \"ERROR\", etc.
+  string message = 4;       // Actual log message text
+  bytes metadata = 5;       // (optional) JSON-encoded map of additional fields
+}
+
+// Simple ack after ingestion
+message IngestAck {
+  bool success = 1;
+}

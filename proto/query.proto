@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package query;
+
+option go_package = "/proto/query;query";
+
+service LogQuery {
+  // Fetch latest summaries for a given stream
+  rpc GetSummaries(GetReq) returns (stream SummaryResp);
+}
+
+// Request parameters for fetching summaries
+message GetReq {
+  string stream = 1;  // e.g., \"auth-service\"
+  int32 limit = 2;    // How many summaries to return (default: 5)
+}
+
+// Each summarized digest
+message SummaryResp {
+  string stream = 1;
+  string window_start = 2; // ISO8601 formatted start time
+  string window_end = 3;   // ISO8601 formatted end time
+  string text = 4;         // The human-readable summary
+}
