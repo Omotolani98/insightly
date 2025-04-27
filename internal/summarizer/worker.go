@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Omotolani98/insightly/internal/config"
 	"github.com/Omotolani98/insightly/internal/llm"
 	"github.com/Omotolani98/insightly/internal/storage"
 	"github.com/redis/go-redis/v9"
@@ -19,8 +20,23 @@ type Summarizer struct {
 	llmClient *llm.Client
 }
 
-func NewSummarizer(rdb *redis.Client, db *gorm.DB, llmClient *llm.Client) *Summarizer {
-	return &Summarizer{rdb: rdb, db: db, llmClient: llmClient}
+func NewSummarizer(rdb *redis.Client, db *gorm.DB) *Summarizer {
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("❌ Failed loading config: %v", err)
+	}
+
+	llmBaseURL := "http://" + cfg.LLMHost + ":" + cfg.LLMPort
+	engineID := cfg.EngineID
+	modelName := cfg.ModelName
+
+	llmClient := llm.NewClient(llmBaseURL, engineID, modelName)
+
+	return &Summarizer{
+		rdb:       rdb,
+		db:        db,
+		llmClient: llmClient,
+	}
 }
 
 func (s *Summarizer) Run(ctx context.Context) error {

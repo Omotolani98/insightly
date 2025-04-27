@@ -7,6 +7,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
@@ -19,47 +24,29 @@ services:
     ports:
       - "${REDIS_PORT}:6379"
 
-  llm:
-    image: ai/llama3.2
-    # image: ollama/ollama
-    container_name: insightly_llm
-    env_file: .env
-    ports:
-      - "${LLM_PORT}:11434"
-    # Optional: preload models if needed via volumes or ENV
+  # ingest:
+  #   build:
+  #     context: .
+  #     dockerfile: deployments/ingest.Dockerfile
+  #   container_name: insightly_ingest
+  #   env_file: .env
+  #   ports:
+  #     - "${INGEST_PORT}:50051"
+  #   depends_on:
+  #     - redis
 
-  ingest:
-    build:
-      context: .
-      dockerfile: deployments/ingest.Dockerfile
-    container_name: insightly_ingest
-    env_file: .env
-    ports:
-      - "${INGEST_PORT}:50051"
-    depends_on:
-      - redis
-
-  summarizer:
-    build:
-      context: .
-      dockerfile: deployments/summarizer.Dockerfile
-    container_name: insightly_summarizer
-    env_file: .env
-    depends_on:
-      - redis
-      - postgres
-      - llm
-
-  query:
-    build:
-      context: .
-      dockerfile: deployments/query.Dockerfile
-    container_name: insightly_query
-    env_file: .env
-    ports:
-      - "${QUERY_PORT}:50052"
-    depends_on:
-      - postgres
+  # query:
+  #   build:
+  #     context: .
+  #     dockerfile: deployments/query.Dockerfile
+  #   container_name: insightly_query
+  #   env_file: .env
+  #   ports:
+  #     - "${QUERY_PORT}:50052"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #       restart: true
 
 volumes:
   postgres-data:

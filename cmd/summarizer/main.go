@@ -9,7 +9,6 @@ import (
 
 	"github.com/Omotolani98/insightly/internal/cache"
 	"github.com/Omotolani98/insightly/internal/db"
-	"github.com/Omotolani98/insightly/internal/llm"
 	"github.com/Omotolani98/insightly/internal/storage"
 	"github.com/Omotolani98/insightly/internal/summarizer"
 )
@@ -37,12 +36,7 @@ func main() {
 		log.Fatalf("❌ failed to run migrations: %v", err)
 	}
 
-	llmBaseURL := "http://" + os.Getenv("LLM_HOST") + ":" + os.Getenv("LLM_PORT")
-	engineID := os.Getenv("ENGINE_ID")
-	modelName := os.Getenv("MODEL_NAME")
-
-	llmClient := llm.NewClient(llmBaseURL, engineID, modelName)
-	summarizerService := summarizer.NewSummarizer(rdb, db, llmClient)
+	summarizerService := summarizer.NewSummarizer(rdb, db)
 
 	if err := summarizerService.Run(ctx); err != nil && err != context.Canceled {
 		log.Fatalf("❌ Summarizer error: %v", err)
