@@ -14,6 +14,7 @@ down:
 	@pkill -f ./bin/ingest || echo "🛡️ Ingest not running."
 	@pkill -f ./bin/summarizer || echo "🛡️ Summarizer not running."
 	@pkill -f ./bin/query || echo "🛡️ Query not running."
+	@pkill -f ./bin/api || echo "🛡️ API not running."
 
 # View Redis and Postgres logs
 logs:
@@ -32,6 +33,12 @@ summarizer:
 	@echo "⚡ Building and starting Summarizer Worker..."
 	go build -o ./bin/summarizer cmd/summarizer/main.go
 	./bin/summarizer
+
+# Build and run API Worker
+api:
+	@echo "🚀 Building and starting API Server..."
+	go build -o ./bin/api cmd/api/main.go
+	./bin/api
 
 # Build and run Query Server
 query:
