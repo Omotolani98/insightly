@@ -164,4 +164,54 @@ Create a simple frontend using HTML, Tailwind CSS, and JavaScript:
 ```
 
 ### `app.js`
+```
+const filterInput = document.getElementById('filterInput');
+const summaryList = document.getElementById('summaryList');
+
+// Fetch summaries
+async function fetchSummaries(filter = '') {
+  summaryList.innerHTML = "<p>Loading...</p>";
+
+  try {
+    const response = await fetch(`http://localhost:8080/summaries?stream=${filter}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const summaries = await response.json();
+
+    summaryList.innerHTML = "";
+
+    if (!Array.isArray(summaries) || summaries.length === 0) {
+      summaryList.innerHTML = "<p>No summaries found.</p>";
+      return;
+    }
+
+    summaries.forEach(summary => {
+      const li = document.createElement('li');
+      li.className = "border p-4 rounded bg-gray-100";
+
+      li.innerHTML = `
+        <div class="font-semibold mb-2 text-indigo-600">${summary.stream}</div>
+        <div class="text-gray-700 whitespace-pre-line">${summary.text}</div>
+        <div class="text-sm text-gray-500 mt-2">
+          From ${new Date(summary.window_start).toLocaleString()} 
+          to ${new Date(summary.window_end).toLocaleString()}
+        </div>
+      `;
+      summaryList.appendChild(li);
+    });
+  } catch (err) {
+    console.error("Failed to fetch summaries:", err);
+    summaryList.innerHTML = "<p class='text-red-600'>Failed to fetch summaries.</p>";
+  }
+}
+
+filterInput.addEventListener('input', (e) => {
+  fetchSummaries(e.target.value);
+});
+
+fetchSummaries();
+```
 
