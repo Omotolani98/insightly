@@ -165,5 +165,3 @@ Create a simple frontend using HTML, Tailwind CSS, and JavaScript:
 
 ### `app.js`
 
-[JS content remains unchanged from previous version]
-
