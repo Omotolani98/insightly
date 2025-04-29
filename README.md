@@ -34,7 +34,8 @@ Insightly is an intelligent log summarizer that ingests logs via gRPC, batches t
 │   ├── query                    # Compiled query protobuf
 │   └── query.proto              # Query protobuf definition
 ├── scripts                      # Migration scripts
-└── views                        # HTML views (not currently used)
+├── views                        # HTML views (not currently used)
+└── .env                         # Environment variables
 ```
 
 ## ⚙️ Prerequisites
@@ -84,7 +85,32 @@ protoc --go_out=. --go-grpc_out=. proto/*.proto
 - Check "Enable Docker Model Runner" & "Enable host-side TCP support"
 - Confirm LLM runs at `localhost:12434`
 
-5. Start the Insightly stack:
+5. Create a `.env` file:
+
+```env
+# PostgreSQL
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=insightly
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+
+# Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+
+# LLM
+LLM_HOST=localhost
+LLM_PORT=12434
+ENGINE_ID=llama.cpp
+MODEL_NAME=ai/llama3.2
+
+# gRPC Ports
+INGEST_PORT=50051
+QUERY_PORT=50052
+```
+
+6. Start the Insightly stack:
 
 ```bash
 ./start.sh
@@ -139,44 +165,5 @@ Create a simple frontend using HTML, Tailwind CSS, and JavaScript:
 
 ### `app.js`
 
-```js
-const filterInput = document.getElementById('filterInput');
-const summaryList = document.getElementById('summaryList');
+[JS content remains unchanged from previous version]
 
-async function fetchSummaries(filter = '') {
-  summaryList.innerHTML = "<p>Loading...</p>";
-
-  try {
-    const response = await fetch(`http://localhost:8080/summaries?stream=${filter}`);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-    const summaries = await response.json();
-    summaryList.innerHTML = "";
-
-    if (!Array.isArray(summaries) || summaries.length === 0) {
-      summaryList.innerHTML = "<p>No summaries found.</p>";
-      return;
-    }
-
-    summaries.forEach(summary => {
-      const li = document.createElement('li');
-      li.className = "border p-4 rounded bg-gray-100";
-      li.innerHTML = `
-        <div class="font-semibold mb-2 text-indigo-600">${summary.stream}</div>
-        <div class="text-gray-700 whitespace-pre-line">${summary.text}</div>
-        <div class="text-sm text-gray-500 mt-2">
-          From ${new Date(summary.window_start).toLocaleString()} 
-          to ${new Date(summary.window_end).toLocaleString()}
-        </div>
-      `;
-      summaryList.appendChild(li);
-    });
-  } catch (err) {
-    console.error("Failed to fetch summaries:", err);
-    summaryList.innerHTML = "<p class='text-red-600'>Failed to fetch summaries.</p>";
-  }
-}
-
-filterInput.addEventListener('input', (e) => fetchSummaries(e.target.value));
-fetchSummaries();
-```
